@@ -1,10 +1,13 @@
 const { updateStatus, actifCoursiers, getCoursier } = require('../actions/coursier');
-const { rateCoursier, getCustomer } = require('../actions/customer');
+const { rateCoursier, getCustomer, updateCustomer } = require('../actions/customer');
 
 module.exports = (app) => {
-    app.post('/rate', rateCoursier);
-    app.get('/customers/:id', getCustomer);
-    app.patch('/status', updateStatus);
+    // Coursier routes
     app.get('/actifCoursiers', actifCoursiers);
     app.get('/coursiers/:id', getCoursier);
+    app.patch('/status', updateStatus);
+    // Customer routes
+    app.get('/customers/:id', getCustomer);
+    app.post('/rate', rateCoursier);
+    app.put('/customers/:id', updateCustomer);
 };

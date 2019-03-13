@@ -1,40 +1,40 @@
 const Coursier = require('../coursier');
 const logger = require('../../../config/logger');
-const HTTP = require('../../../config/statusCode');
+const HTTP = require('../../../constants/statusCode');
 
 const updateStatus = async (req, res) => {
-    const { _id, actif } = await Coursier.findById(req.user.id, (error, coursier) => {
-        if(error) {
-            res.status(HTTP.NOT_FOUND).send({error});
-        }
-        return coursier;
-    });
-    await Coursier.findByIdAndUpdate(_id,{ $set: {actif: !actif} }, (error) => {
-        if(error) {
-            logger.error(error);
-            res.status(HTTP.SERVER_ERROR).send({error});
-        }
-    });
-    res.status(HTTP.SUCCESS);
+    let id, actif;
+    try {
+        ({ id, actif } = await Coursier.findById(req.user.id));
+    }catch(error) {
+        return res.status(HTTP.NOT_FOUND).send({error});
+    }
+    try {
+        await Coursier.findByIdAndUpdate(id,{ $set: {actif: !actif} });
+    }catch(error) {
+        logger.error(error);
+        return res.status(HTTP.SERVER_ERROR).send({error});
+    }
+    
+    return res.status(HTTP.SUCCESS);
 };
 
-const actifCoursiers = (req, res) => {
-    Coursier.find({actif: true}, (error, coursiers) => {
-        if(error) {
-            logger.error(error);
-            res.status(HTTP.SERVER_ERROR).send({error});
-        }
-        res.status(HTTP.SUCCESS).send({coursiers});
-    });
+const actifCoursiers = async (req, res) => {
+    try {
+        await Coursier.find({actif: true});
+    }catch(error) {
+        logger.error(error);
+        return res.status(HTTP.SERVER_ERROR).send({error});
+    }
 };
 
-const getCoursier = (req, res) => {
-    Coursier.findById(req.params.id, (error, coursier) => {
-        if(error) {
-            res.status(HTTP.NOT_FOUND).send({error});
-        }
-        res.status(HTTP.SUCCESS).send({coursier});
-    });
+const getCoursier = async (req, res) => {
+    try {
+        await Coursier.findById(req.params.id);
+    }catch(error) {
+        logger.error(error);
+        res.status(HTTP.NOT_FOUND).send({error});
+    }
 }
 module.exports = {
     updateStatus,

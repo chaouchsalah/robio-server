@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const status = require('./status');
+const status = require('./constants/status');
 const Schema = mongoose.Schema;
 
 // Define model

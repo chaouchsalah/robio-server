@@ -1,5 +1,5 @@
 const passport = require('passport');
-const HTTP = require('../../../config/statusCode');
+const HTTP = require('../../../constants/statusCode');
 const { sign } = require('jsonwebtoken');
 require('../passport');
 
@@ -24,11 +24,6 @@ module.exports = (app) => {
     );
     app.get('/auth/facebook/callback',
     passport.authenticate('facebook'), (req, res) => {
-        console.log('***********************');
-        console.log('***********************');
-        console.log(res);
-        console.log('***********************');
-        console.log('***********************');
         res.redirect(`http://localhost:3000/${req.user.userType}/profile?id=${req.user._id}`);
     });
 

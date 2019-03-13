@@ -21,9 +21,9 @@ jobs:
           command: yarn test
       - run:
           name: code-coverage
-          command: './node_modules/.bin/nyc report --reporter=text-lcov'
+          command: yarn test --coverage
       - store_artifacts:
-          path: test-results.xml
+          path: coverage/clover.xml
           prefix: tests
       - store_artifacts:
           path: coverage
