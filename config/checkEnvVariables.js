@@ -1,5 +1,4 @@
-'use strict'
-const getTodayDate = require('../lib/todayDate');
+const getTodayDate = require('../helpers/todayDate');
 // Required environment variables
 let variables = [
   'FACEBOOK_APP_ID',

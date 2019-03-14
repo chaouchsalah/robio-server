@@ -28,8 +28,7 @@ const rateCoursier = async (req, res) => {
 
 const getCustomer = async (req, res) => {
     try {
-        const customer = Customer.findById(req.params.id);
-        return res.status(HTTP.SUCCESS).send({customer});
+        return res.status(HTTP.SUCCESS).send({customer: req.user});
     }catch(error) {
         return res.status(HTTP.NOT_FOUND).send({error});
     }

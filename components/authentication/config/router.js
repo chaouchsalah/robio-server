@@ -1,35 +1,30 @@
-const passport = require('passport');
 const HTTP = require('../../../constants/statusCode');
 const { sign } = require('jsonwebtoken');
+const types = require('../../user/constants/types');
+const logger = require('../../../config/logger');
+const Customer = require('../../user/customer');
+const Coursier = require('../../user/coursier');
 require('../passport');
 
-signToken = user => {
-    return sign({
-      iss: 'CodeWorkr',
-      sub: user.id,
-      iat: new Date().getTime(),
-      exp: new Date().setDate(new Date().getDate() + 1)
-    }, process.env.JWT_SECRET);
-  }
 
 module.exports = (app) => {
-    app.get('/auth/:user', (req, res, next) => {
-        process.env.USER_TYPE = req.params.user;
-        next();
-    }, passport.authenticate('facebook', {session: false}),
-        async (req, res) => {
-            const token = signToken(req.user);
-            res.status(HTTP.SUCCESS).json({ token });
+    app.post('/auth', async (req, res) => {
+        let User = req.body.userType === types.CUSTOMER ? Customer : Coursier;
+        try {
+            console.log(req.body);
+            let user = await User.findOne({ facebookId: req.body.id });
+            if (!user) {
+                user = new User();
+                user.facebookId = req.body.id;
+                user.displayName = req.body.name;
+                await user.save();
+            }
+            const payload = {id: user.id};
+            const token = sign(payload, process.env.JWT_SECRET);
+            return res.status(HTTP.SUCCESS).send({token});
+        } catch (error) {
+            logger.error(error);
+            return res.status(HTTP.SERVER_ERROR).send({error});
         }
-    );
-    app.get('/auth/facebook/callback',
-    passport.authenticate('facebook'), (req, res) => {
-        res.redirect(`http://localhost:3000/${req.user.userType}/profile?id=${req.user._id}`);
-    });
-
-    app.get('/logout', (req, res) => {
-        req.logout();
-        process.env.USER_TYPE = null;
-        res.status(200).send({});
     });
 };

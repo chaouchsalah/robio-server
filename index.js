@@ -3,7 +3,7 @@ require('./config/checkEnvVariables');
 require('./web/server');
 require('./config/db');
 const cron = require('node-cron');
-const getTodayDate = require('./lib/todayDate');
+const getTodayDate = require('./helpers/todayDate');
 const logger = require('./config/logger');
 
 // Will run at 12:00 PM everyday
