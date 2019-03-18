@@ -6,7 +6,7 @@ const address = async (location) =>{
             location
         }
     });
-    const location = response.data.results[0].locations[0];
+    location = response.data.results[0].locations[0];
     if((location.geocodeQualityCode.split("X").length - 1) < 2 ){
         return location.latLng;
     }

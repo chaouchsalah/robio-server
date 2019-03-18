@@ -1,30 +1,58 @@
 const Sekhra = require('../sekhra');
+const Route = require('../route');
 const Customer = require('../../user/customer');
 const Coursier = require('../../user/coursier');
 const userTypes = require('../../user/constants/types');
 const statusTypes = require('../constants/status');
 const logger = require('../../../config/logger');
 const HTTP = require('../../../constants/statusCode');
+const getCoords = require('../../../web/api/mapQuest/adress');
 
 const addSekhra = async (req, res) => {
-    if (process.env.USER_TYPE === userTypes.COURSIER) {
-        return res.status(HTTP.UNAUTHORIZED).send({ error: 'Unauthorized' });
+    const { from, to, description, items } = req.body.sekhra;
+    let fromCoords;
+    try {
+        fromCoords = await getCoords(from);
+    } catch (error) {
+        logger.error(error);
+        return res.status(HTTP.SERVER_ERROR).send({ error });
     }
-    let customer, coursier;
+    const fromLat = fromCoords.lat;
+    const fromLong = fromCoords.lng;
+    if (!fromLat || !fromLong) {
+        res.status(HTTP.BAD_REQUEST).send(
+            { error: 'The from address isn\'t right' }
+        );
+    }
+    let toCoords;
+    try {
+        toCoords = await getCoords(to);
+    } catch (error) {
+        logger.error(error);
+        return res.status(HTTP.SERVER_ERROR).send({ error });
+    }
+    const toLat = toCoords.lat;
+    const toLong = toCoords.lng;
+    if (!toLat || !toLong) {
+        res.status(HTTP.BAD_REQUEST).send(
+            { error: 'The to address isn\'t right' }
+        );
+    }
+    let customer;
     try {
         customer = await Customer.findById(req.body.customer._id);
-        coursier = await Coursier.findById(req.body.coursier._id);
     } catch (error) {
         return res.status(HTTP.NOT_FOUND).send({ error });
     }
 
-    let sekhra = new Sekhra(req.body.sekhra);
+    let sekhra = new Sekhra();
+    sekhra.items = items;
+    sekhra.description = description;
+    sekhra.from = [fromLat, fromLong];
+    sekhra.to = [toLat, toLong];
     sekhra.customer = customer;
-    sekhra.coursier = coursier;
     try {
-        await sekhra.save((error));
-        await Coursier.findOneAndUpdate({ _id: coursier._id },
-            { $push: { "currentSekhras": sekhra } });
+        await sekhra.save();
         await Customer.findOneAndUpdate({ _id: customer._id },
             { $push: { "currentSekhras": sekhra } }
         );
@@ -36,7 +64,7 @@ const addSekhra = async (req, res) => {
 };
 
 const listSekhras = async (req, res) => {
-    const User = process.env.USER_TYPE === userTypes.CUSTOMER
+    const User = req.user.userType === userTypes.CUSTOMER
         ? Customer : Coursier;
     let user;
     try {
@@ -54,9 +82,6 @@ const listSekhras = async (req, res) => {
 };
 
 const changeSekhraStatus = async (req, res) => {
-    if (process.env.USER_TYPE === userTypes.CUSTOMER) {
-        return res.status(HTTP.UNAUTHORIZED).send({ error: 'Unauthorized' });
-    }
     let coursier, sekhra;
     try {
         coursier = await Coursier.findById(req.user.id);
@@ -81,24 +106,39 @@ const changeSekhraStatus = async (req, res) => {
             Coursier.findByIdAndUpdate(
                 coursier._id,
                 { $pull: { "currentSekhras._id": sekhra._id } },
-                { $push: { "finishedSekhras._id": sekhra._id } }
+                { $push: { "finishedSekhras": sekhra } }
             );
             // Update the arrays of finished and current sekhras of customer
             Customer.findByIdAndUpdate(
                 sekhra.customer._id,
                 { $pull: { "currentSekhras._id": sekhra._id } },
-                { $push: { "finishedSekhras._id": sekhra._id } }
+                { $push: { "finishedSekhras": sekhra } }
             );
         }
     } catch (error) {
         logger.error(error);
         return res.status(HTTP.SERVER_ERROR).send({ error });
     }
-
 };
+
+const getSekhra = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const sekhra = await Sekhra.findById(id);
+        const route = await Route.findById(sekhra.route);
+        console.log(route);
+        sekhra.route = route;
+        res.status(HTTP.SUCCESS).send({ sekhra });
+    } catch (error) {
+        res.status(HTTP.SERVER_ERROR).send({ error });
+    }
+
+}
+
 
 module.exports = {
     addSekhra,
     changeSekhraStatus,
-    listSekhras
+    listSekhras,
+    getSekhra
 }

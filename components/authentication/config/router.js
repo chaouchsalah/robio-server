@@ -9,14 +9,24 @@ require('../passport');
 
 module.exports = (app) => {
     app.post('/auth', async (req, res) => {
-        let User = req.body.userType === types.CUSTOMER ? Customer : Coursier;
+        const { userType, id, name } = req.body;
+        let User = userType === types.CUSTOMER ? Customer : Coursier;
         try {
-            console.log(req.body);
-            let user = await User.findOne({ facebookId: req.body.id });
+            let user = await User.findOne({ facebookId: id });
             if (!user) {
                 user = new User();
-                user.facebookId = req.body.id;
-                user.displayName = req.body.name;
+                user.facebookId = id;
+                user.displayName = name;
+                if(userType === 'coursier') {
+                    const { lat, long } = req.body.location;
+                    user.location = {
+                        type: 'Point',
+                        coordinates: [
+                            lat,
+                            long
+                        ]
+                    };
+                }
                 await user.save();
             }
             const payload = {id: user.id};

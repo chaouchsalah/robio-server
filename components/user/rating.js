@@ -22,11 +22,9 @@ const ratingSchema = new Schema({
 });
 
 // Modify the coursier rating
-ratingSchema.post('save', (rating) => {
-    Coursier.findById(rating.coursier.id, (err, coursier) => {
-        if(err) {
-            logger.error(err);
-        }
+ratingSchema.post('save', async (rating) => {
+    try{
+        let coursier  = Coursier.findById(rating.coursier.id);
         coursier.numberOfRatings++;
         if(coursier.numberOfRatings === 0) {
             coursier.rating = rating.rating;
@@ -35,8 +33,10 @@ ratingSchema.post('save', (rating) => {
             const newRating = ((coursier.rating * (numberOfRatings - 1)) + rating.rating) / numberOfRatings;
             coursier.rating = newRating;
         }
-        coursier.save();
-    });
+        await coursier.save();
+    }catch(error) {
+        logger.error(err);
+    }
 });
 
 // Create the model

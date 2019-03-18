@@ -11,8 +11,8 @@ const route = async (from, to) => {
         }
     });
     const route = response.data.route;
-    const { distance, formattedTime, legs, alternatesRoutes } = route;
-    return { distance, formattedTime, legs, alternatesRoutes};
+    const { distance, formattedTime, shape, alternatesRoutes } = route;
+    return { distance, formattedTime, shape, alternatesRoutes};
 };
 
 module.exports = route;
