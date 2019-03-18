@@ -34,6 +34,14 @@ const sekhraSchema = new Schema({
     coursier: {
         type: Schema.Types.ObjectId,
         ref: 'Coursier'
+    },
+    route: {
+        type: Schema.Types.ObjectId,
+        ref: 'Route'
+    },
+    activated: {
+        type: Boolean,
+        default: false
     }
 },{ timestamps: true });
 
