@@ -1,14 +1,9 @@
 const getRoute = require('../../../web/api/mapQuest/route');
 const logger = require('../../../config/logger');
 const HTTP = require('../../../constants/statusCode');
-const statusTypes = require('../constants/status');
 const Sekhra = require('../sekhra');
-const Customer = require('../../user/customer');
 const Coursier = require('../../user/coursier');
-const userTypes = require('../../user/constants/types');
-const getClosest = require('../helpers/closestCoursier');
-const formatShapePoints = require('../helpers/formatShapePoints');
-const Notification = require('../../notification/notif');
+const compareTime = require('../helpers/compareTime');
 
 module.exports = estimateSekhra = async (sekhra, io) => {
     const { from, to } = sekhra;
@@ -25,8 +20,9 @@ module.exports = estimateSekhra = async (sekhra, io) => {
                         coordinates: [fromLat, fromLong]
                     }
                 }
-            }
-        });
+            },
+        from
+    });
     } catch (error) {
         logger.error(error);
         return res.status(HTTP.SERVER_ERROR).send({ error });
@@ -36,8 +32,8 @@ module.exports = estimateSekhra = async (sekhra, io) => {
         if (coursiers[i].currentSekhras.length === 0) {
             users.push(coursiers[i]._id);
         } else {
-            for (let i = 0; i < coursiers[i].currentSekhras.length; i++) {
-                const sekhra = coursiers[i].currentSekhras[i];
+            for (let j = 0; j < coursiers[i].currentSekhras.length; j++) {
+                const sekhra = coursiers[i].currentSekhras[j];
                 try {
                     let coursierSekhra = await Sekhra.findById(
                         sekhra._id
@@ -57,14 +53,22 @@ module.exports = estimateSekhra = async (sekhra, io) => {
 };
 
 // TODO: Find the coursier who is going to finish first and closest
-async function findClosestActifCoursier(criteria) {
-    let coursierId;
+async function findClosestActifCoursier(criteria, from) {
     let coursiers;
     try {
-        coursierId = await Coursier.find(criteria, { limit: 5 });
-        coursiers = await Coursier.find({ _id: coursierId });
+        coursiers = await Coursier.find(criteria).limit(10);
     } catch (error) {
         throw error;
     }
-    return coursiers;
+    if(coursiers.length <= 5) {
+        return coursiers;
+    }
+    let ETAcoursiers = [];
+    for(let i=0;i<coursiers.length;i++) {
+        const to = coursiers[i].location.coordinates;
+        const {formattedTime} = await getRoute(from, to);
+        ETAcoursiers.push(formattedTime);
+    }
+    ETAcoursiers.sort(compareTime);
+    return ETAcoursiers.slice(0,5);
 }
