@@ -11,9 +11,7 @@ const routeSchema = new Schema({
     distance: {
         type: Number
     },
-    waypoints: [{
-        type: number
-    }]
+    waypoints: [[Number, Number]]
 });
 
 // Create the model

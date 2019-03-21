@@ -10,16 +10,15 @@ const userRouter = require('../components/user/config/router');
 const authRouter = require('../components/authentication/config/router');
 const sekhraRouter = require('../components/sekhras/config/router');
 const logger = require('../config/logger');
+const estimateSekhra = require('../components/sekhras/actions/sekhraEstimation');
+const readySekhra = require('../components/sekhras/actions/sekhraReady');
 
 const app = express();
 
 const options = {
     key: fs.readFileSync('./certs/server.key'),
     cert: fs.readFileSync('./certs/server.crt')
-  };
-
-const server = require('https').Server(options, app);
-const io = require('socket.io')(server);
+};
 
 app.use(cors());
 app.use(helmet());
@@ -27,6 +26,9 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 
 app.use(passport.initialize());
+
+const server = require('https').Server(options, app);
+const io = require('socket.io')(server);
 
 // Define routes
 mainRouter(app);
@@ -41,8 +43,15 @@ server.listen(port, () => {
 });
 
 io.on('connection', socket => {
+    socket.on('addSekhra', (data) => {
+        estimateSekhra(data, io);
+    });
+    socket.on('acceptSekhra', (data) => {
+        const { users, sekhra } = data;
+        readySekhra(sekhra, io);
+        io.sockets.emit('deleteNotification', { users });
+    })
     socket.on('position', (data) => {
-        console.log(data);
         io.sockets.emit('locateUser', data);
     });
 });

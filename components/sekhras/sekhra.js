@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const status = require('./constants/status');
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
 // Define model
 const sekhraSchema = new Schema({
