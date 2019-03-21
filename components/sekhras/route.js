@@ -1,5 +1,7 @@
+// Contains the { distance, time, and path } of the sekhra
+// Separated from the sekhra model for readability purposes
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
 // Define model
 const routeSchema = new Schema({
@@ -9,9 +11,7 @@ const routeSchema = new Schema({
     distance: {
         type: Number
     },
-    waypoints: [{
-        type: number
-    }]
+    waypoints: [[Number,Number]]
 });
 
 // Create the model
