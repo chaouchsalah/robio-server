@@ -1,9 +1,30 @@
 module.exports = {
-    SUCCESS: 200,
-    CREATED: 201,
-    BAD_REQUEST: 400,
-    UNAUTHORIZED: 401,
-    NOT_FOUND: 404,
-    SERVER_ERROR: 500,
-    SERVICE_UNAVAILABLE: 503
+    SUCCESS: {
+        code: 200,
+        name: 'SUCCESS'
+    },
+    CREATED: {
+        code: 201,
+        name: 'CREATED'
+    },
+    BAD_REQUEST: {
+        code: 400,
+        name: 'BAD REQUEST'
+    },
+    UNAUTHORIZED: {
+        code: 401,
+        name: 'UNAUTHORIZED'
+    },
+    NOT_FOUND: {
+        code: 404,
+        name: 'NOT FOUND'
+    },
+    SERVER_ERROR: {
+        code: 500,
+        name: 'SERVER ERROR'
+    },
+    SERVICE_UNAVAILABLE: {
+        code: 503,
+        name: 'SERVICE UNAVAILABLE'
+    }
 }
