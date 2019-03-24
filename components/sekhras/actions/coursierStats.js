@@ -5,55 +5,34 @@ const HTTP = require('../../../constants/statusCode');
 const logger = require('../../../')
 
 async function getDailyStats(req, res) {
-    const { _id } = req.user;
-    const day = new Date().getTime() - 24 * 60 * 60 * 1000;
-    let result;
-    try {
-        result = await calculateStats(day, _id);
-    }catch(error) {
-        logger.error(error);
-        return res.status(HTTP.SERVER_ERROR).send({error});
-    }
-    return res.status(HTTP.SUCCESS).send(result);
+    return getStats(req, res, 1);
 }
 
 async function getWeeklyStats(req, res) {
-    const { _id } = req.user;
-    const week = new Date().getTime() - 7 * 24 * 60 * 60 * 1000;
-    let result;
-    try {
-        result = await calculateStats(week, _id);
-    }catch(error) {
-        logger.error(error);
-        return res.status(HTTP.SERVER_ERROR).send({error});
-    }
-    return res.status(HTTP.SUCCESS).send(result);
+    return getStats(req, res, 7);
 }
 
 async function getMonthlyStats(req, res) {
-    const { _id } = req.user;
-    const week = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
-    let result;
-    try {
-        result = await calculateStats(week, _id);
-    }catch(error) {
-        logger.error(error);
-        return res.status(HTTP.SERVER_ERROR).send({error});
-    }
-    return res.status(HTTP.SUCCESS).send(result);
+    return getStats(req, res, 30);
 }
 
 async function getYearlyStats(req, res) {
+    return getStats(req, res, 365);
+}
+
+async function getStats(req, res, duration) {
     const { _id } = req.user;
-    const week = new Date().getTime() - 365 * 24 * 60 * 60 * 1000;
+    const week = new Date().getTime() - duration * 24 * 60 * 60 * 1000;
     let result;
     try {
         result = await calculateStats(week, _id);
-    }catch(error) {
+    } catch (error) {
+        const { code } = HTTP.SERVER_ERROR;
         logger.error(error);
-        return res.status(HTTP.SERVER_ERROR).send({error});
+        return res.status(code).send({ error });
     }
-    return res.status(HTTP.SUCCESS).send(result);
+    const { code } = HTTP.SUCCESS;
+    return res.status(code).send(result);
 }
 
 async function calculateStats(duration, _id) {
