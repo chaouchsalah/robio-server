@@ -16,7 +16,7 @@ module.exports = findOrCreateUser = async (req, res) => {
         const link = `https://graph.facebook.com/debug_token?input_token=${userToken}&access_token=${access_token}`;
         response = await axios.get(link);
         const { user_id } = response.data.data;
-        if(!user_id) {
+        if (!user_id) {
             const { code, name } = HTTP.BAD_REQUEST;
             throw new AppError(
                 name,
@@ -48,7 +48,8 @@ module.exports = findOrCreateUser = async (req, res) => {
         }
         const payload = { id: user.id };
         const token = sign(payload, process.env.JWT_SECRET);
-        return res.status(HTTP.SUCCESS).send({ token });
+        const { code } = HTTP.SUCCESS;
+        return res.status(code).send({ token });
     } catch (error) {
         return sendResponse(error, res);
     }
