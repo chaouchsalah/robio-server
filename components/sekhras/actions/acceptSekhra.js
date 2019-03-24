@@ -1,12 +1,12 @@
 const Sekhra = require('../sekhra');
 const Coursier = require('../../user/coursier');
-const logger = require('../../../config/logger');
 const HTTP = require('../../../constants/statusCode');
 const Route = require('../route');
 const getRoute = require('../../../web/api/mapQuest/route');
 const formatShapePoints = require('../helpers/formatShapePoints');
 const AppError = require('../../../config/errorHandling');
 const sendResponse = require('../../../helpers/errorResponse');
+const { estimatePrice } = require('../helpers/priceEstimation');
 
 module.exports = acceptSekhra = async (req, res) => {
     const { sekhraId } = req.body;
@@ -35,6 +35,8 @@ module.exports = acceptSekhra = async (req, res) => {
         route.distance = routes.distance;
         await route.save();
         sekhra.route = route;
+        const price = estimatePrice(sekhra.items.length, route.distance);
+        sekhra.price = price;
         await sekhra.save();
         await Coursier.findByIdAndUpdate(
             user._id,
