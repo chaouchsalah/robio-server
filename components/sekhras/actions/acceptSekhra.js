@@ -5,21 +5,26 @@ const HTTP = require('../../../constants/statusCode');
 const Route = require('../route');
 const getRoute = require('../../../web/api/mapQuest/route');
 const formatShapePoints = require('../helpers/formatShapePoints');
+const AppError = require('../../../config/errorHandling');
+const sendResponse = require('../../../helpers/errorResponse');
 
 module.exports = acceptSekhra = async (req, res) => {
     const { sekhraId } = req.body;
     const { user } = req;
-    let sekhra;
     try {
-        sekhra = await Sekhra.findById(sekhraId);
-    } catch (error) {
-        return res.status(HTTP.NOT_FOUND).send({ error });
-    }
-    sekhra.coursier = user;
-    const [fromLat, fromLong] = sekhra.from;
-    const [toLat, toLong] = sekhra.to;
-    let route = new Route();
-    try {
+        const sekhra = await Sekhra.findById(sekhraId);
+        if (!sekhra) {
+            const { code, name } = HTTP.NOT_FOUND;
+            throw new AppError(
+                name,
+                code,
+                `sekhra with id:${sekhraId} was not found`
+            );
+        }
+        sekhra.coursier = user;
+        const [fromLat, fromLong] = sekhra.from;
+        const [toLat, toLong] = sekhra.to;
+        let route = new Route();
         const routes = await routeSimpleSekhra(
             user.location.coordinates,
             [fromLat, fromLong],
@@ -29,20 +34,14 @@ module.exports = acceptSekhra = async (req, res) => {
         route.formattedTime = routes.formattedTime;
         route.distance = routes.distance;
         await route.save();
-    } catch (error) {
-        logger.error(error);
-        return res.status(HTTP.SERVER_ERROR).send({ error });
-    }
-    sekhra.route = route;
-    try {
+        sekhra.route = route;
         await sekhra.save();
         await Coursier.findByIdAndUpdate(
             user._id,
             { $push: { "currentSekhras": sekhra } }
         );
     } catch (error) {
-        logger.error(error);
-        return res.status(HTTP.SERVER_ERROR).send({ error });
+        sendResponse(error, res);
     }
     return res.status(HTTP.SUCCESS).send();
 };
