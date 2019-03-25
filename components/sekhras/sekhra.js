@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const status = require('./constants/status');
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
 // Define model
 const sekhraSchema = new Schema({
@@ -34,6 +34,14 @@ const sekhraSchema = new Schema({
     coursier: {
         type: Schema.Types.ObjectId,
         ref: 'Coursier'
+    },
+    route: {
+        type: Schema.Types.ObjectId,
+        ref: 'Route'
+    },
+    activated: {
+        type: Boolean,
+        default: false
     }
 },{ timestamps: true });
 
