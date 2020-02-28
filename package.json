@@ -9,7 +9,7 @@
   "author": "chaouch salah eddine <chaouchsalaheddine97@hotmail.fr>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "dotenv": "^6.2.0",
